@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebRTC Mobile (No Download)</title>
+
+<style>
+body{
+  background:#111;
+  color:white;
+  text-align:center;
+  font-family:Arial;
+}
+video{
+  width:160px;
+  height:160px;
+  border:2px solid white;
+  border-radius:10px;
+  margin:5px;
+  object-fit:cover;
+}
+input, button{
+  padding:8px;
+  margin:5px;
+}
+</style>
+</head>
+
+<body>
+
+<h3>📱 WebRTC Mobile (No Server)</h3>
+
+<video id="local" autoplay muted playsinline></video>
+<video id="remote" autoplay playsinline></video>
+
+<br>
+
+<input id="peerId" placeholder="Enter Remote ID">
+<br>
+<button onclick="start()">Start Camera</button>
+<button onclick="callPeer()">Call</button>
+
+<p>Your ID: <span id="myId">---</span></p>
+
+<!-- PeerJS CDN (NO DOWNLOAD) -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<script>
+let peer;
+let localStream;
+
+const localVideo = document.getElementById("local");
+const remoteVideo = document.getElementById("remote");
+const myId = document.getElementById("myId");
+
+// 🎥 Start camera
+async function start(){
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video:true,
+    audio:true
+  });
+  localVideo.srcObject = localStream;
+
+  peer = new Peer();
+
+  peer.on("open", id=>{
+    myId.innerText = id;
+  });
+
+  peer.on("call", call=>{
+    call.answer(localStream);
+    call.on("stream", stream=>{
+      remoteVideo.srcObject = stream;
+    });
+  });
+}
+
+// 📞 Call other peer
+function callPeer(){
+  const id = document.getElementById("peerId").value;
+  const call = peer.call(id, localStream);
+  call.on("stream", stream=>{
+    remoteVideo.srcObject = stream;
+  });
+}
+</script>
+
+</body>
+</html>
