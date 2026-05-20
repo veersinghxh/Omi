@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebRTC Mobile (No Download)</title>
+
+<style>
+body{
+  background: #4077ff4a;
+  color: black;
+  text-align:center;
+  font-family:Arial;
+}            
+video{
+  width:320px;
+  height:200px;
+  border:2px solid white;
+  border-radius:10px;
+  margin:5px;
+  object-fit:cover;
+}
+input, button{
+  padding:8px;
+  m
+  argin:5px;
+}
+.navbar{
+    width:90%;
+    max-width:1200px;
+    margin:0px auto;
+    background:black;
+    border-radius:15px;
+    padding:18px 35px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    box-shadow:0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* LOGO */
+
+.logo{
+    color:#fff;
+    font-size:30px;
+    font-weight:bold;
+    letter-spacing:2px;
+}
+
+/* NAV LINKS */
+
+.nav-links{
+    display:flex;
+    align-items:center;
+    gap:35px;
+}
+
+.nav-links a{
+    color:white;
+    text-decoration:none;
+    font-size:17px;
+    transition:0.3s;
+    position:relative;
+}
+
+/* Hover underline */
+
+.nav-links a::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:-5px;
+    width:0%;
+    height:2px;
+    background:#dfff3f;
+    transition:0.3s;
+}
+
+.nav-links a:hover::after{
+    width:100%;
+}
+
+/* BUTTON */
+
+.contact-btn{
+    background:#dfff3f;
+    color:#000 !important;
+    padding:12px 24px;
+    border-radius:30px;
+    font-weight:bold;
+}
+
+.contact-btn:hover{
+    transform:scale(1.05);
+}
+
+/* MENU ICON */
+
+.menu-btn{
+    display:none;
+    font-size:32px;
+    color:white;
+    cursor:pointer;
+}
+
+/* HIDE CHECKBOX */
+
+#menu-toggle{
+    display:none;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+    .navbar{
+        padding:18px 25px;
+        position:relative;
+    }
+
+    .menu-btn{
+        display:block;
+    }
+
+    .nav-links{
+        position:absolute;
+        top:90px;
+        left:0;
+        width:100%;
+
+        background:#000;
+        border-radius:20px;
+
+        flex-direction:column;
+        align-items:center;
+
+        max-height:0;
+        overflow:hidden;
+
+        transition:0.4s ease;
+    }
+
+    .nav-links a{
+        padding:18px 0;
+    }
+
+    /* OPEN MENU */
+
+    #menu-toggle:checked ~ .nav-links{
+        max-height:500px;
+        padding:20px 0;
+    }
+
+}
+.title{
+    width:90%;
+    max-width:500px;
+
+    margin:20px auto;
+
+    background:#111;
+    color:white;
+
+    padding:18px 25px;
+
+    border-radius:20px;
+
+    font-size:28px;
+    font-weight:700;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
+
+    letter-spacing:0.5px;
+}
+
+/* SMALL TEXT */
+
+.title span{
+    background:#D9FF3F;
+    color:#111;
+
+    padding:6px 12px;
+
+    border-radius:30px;
+
+    font-size:14px;
+    font-weight:600;
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+    .title{
+        font-size:22px;
+        padding:16px;
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .title span{
+        font-size:13px;
+    }
+
+}
+</style>
+</head>
+
+<body>
+<nav class="navbar">
+
+    <!-- LOGO -->
+    <div class="logo">LOGO</div>
+
+    <!-- MENU BUTTON -->
+    <input type="checkbox" id="menu-toggle">
+
+    <label for="menu-toggle" class="menu-btn">
+        ☰
+    </label>
+
+    <!-- NAV LINKS -->
+    <div class="nav-links">
+        <a href="#">About us</a>
+        <a href="#">Portfolio</a>
+        <a href="#">Services</a>
+        <a href="#" class="contact-btn">Contact us</a>
+    </div>
+
+</nav>
+
+<h3 class="title">
+  📱 WebRTC Mobile
+  <span>No Server</span>
+</h3>
+
+
+<video id="local" autoplay muted playsinline></video>
+<video id="remote" autoplay playsinline></video>
+
+<br>
+
+<input id="peerId" placeholder="Enter Remote ID">
+<br>
+<button onclick="start()">Start Camera</button>
+<button onclick="callPeer()">Call</button>
+
+<p>Your ID: <span id="myId">---</span></p>
+
+<!-- PeerJS CDN (NO DOWNLOAD) -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<script>
+let peer;
+let localStream;
+
+const localVideo = document.getElementById("local");
+const remoteVideo = document.getElementById("remote");
+const myId = document.getElementById("myId");
+
+// 🎥 Start camera
+async function start(){
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video:true,
+    audio:true
+  });
+  localVideo.srcObject = localStream;
+
+  peer = new Peer();
+
+  peer.on("open", id=>{
+    myId.innerText = id;
+  });
+
+  peer.on("call", call=>{
+    call.answer(localStream);
+    call.on("stream", stream=>{
+      remoteVideo.srcObject = stream;
+    });
+  });
+}
+
+// 📞 Call other peer
+function callPeer(){
+  const id = document.getElementById("peerId").value;
+  const call = peer.call(id, localStream);
+  call.on("stream", stream=>{
+    remoteVideo.srcObject = stream;
+  });
+>
+
+</footer>
+</body>
+</html>
